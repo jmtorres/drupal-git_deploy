@@ -30,7 +30,7 @@
  * @param $type
  *   Ignored. D7 has this, D6 doesn't. Is set to either 'module' or 'theme'.
  */
-function git_deploy_system_info_alter(&$info, $file) {
+function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
   $module_dir = dirname($file->filename);
   $git_dir = $module_dir . DIRECTORY_SEPARATOR . '.git';
 
@@ -110,8 +110,7 @@ function _git_deploy_version_alter(&$version, $git_dir, $file) {
     // function invokes update_get_projects(), which in turn needs to process
     // the .info files, which invokes the hook that leads here.
     if (empty($available)) {
-      $cache = _update_cache_get('update_available_releases');
-      $available = $cache->data;
+      $available = _update_get_cached_available_releases();
     }
     $project = update_get_project_name($file);
     if (isset($available[$project]['releases'])) {
