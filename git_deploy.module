@@ -89,7 +89,7 @@ function _git_deploy_version_alter(&$version, $git_dir, $file) {
   $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('heads','tags'));
   if (count($git_refs)) {
     foreach ($git_refs as $git_ref) {
-      $ref_components = split('/', $git_ref, 3);
+      $ref_components = explode('/', $git_ref, 3);
       if (count($ref_components) == 3) {
         $git_tag = $ref_components[2];
         break;
