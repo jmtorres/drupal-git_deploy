@@ -55,28 +55,12 @@ function git_deploy_system_info_alter(&$info, $file) {
     $info['version'] = '';
   }
   _git_deploy_version_alter($info['version'], $git_dir, $file);
-
-//  // Find the timestamp for the most recently modified CVS/Entries file.
-//  $mtime = _cvs_deploy_find_latest_update(dirname($file->uri), 0);
-//
-//  // Only fill this in if the .info file does not define a 'datestamp'.
-//  if (empty($info['datestamp'])) {
-//    $info['datestamp'] = $mtime;
-//  }
-//
-//  // However, the '_info_file_ctime' should always get the latest value.
-//  if (empty($info['_info_file_ctime'])) {
-//    $info['_info_file_ctime'] = $mtime;
-//  }
-//  else {
-//    $info['_info_file_ctime'] = max($info['_info_file_ctime'], $mtime);
-//  }
 }
 
 /**
  * Private helper to alter the version of a module based on what we can figure
  * out about the Git tag.
- * 
+ *
  * @param  $version
  *   The version to be altered, passed by reference
  * @param  $git_dir
@@ -86,7 +70,17 @@ function _git_deploy_version_alter(&$version, $git_dir, $file) {
   static $available;
   $git_hash = git_deploy_hash_find($git_dir, 'HEAD');
 
-  $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('heads','tags'));
+  $head_contents = file_get_contents($git_dir . DIRECTORY_SEPARATOR . 'HEAD');
+
+  // Call git_deploy_refs_find with array set to heads if ref: found
+  if (strpos($head_contents, ':') == 3) {
+      $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('heads'));
+  }
+  else {
+    // Call git_deploy_refs_find with array set to tags if ref: not found
+    $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('tags'));
+  }
+
   if (count($git_refs)) {
     foreach ($git_refs as $git_ref) {
       $ref_components = explode('/', $git_ref, 3);
@@ -129,7 +123,7 @@ function _git_deploy_version_alter(&$version, $git_dir, $file) {
  * Helper function to get the project associated with a Git directory.
  *
  * @param  $git_dir
- *   The location if the .git directory.   
+ *   The location if the .git directory.
  * @return
  *   The name of the project.
  */
@@ -197,7 +191,7 @@ function git_deploy_hash_find($git_dir, $ref) {
  * @return
  *   An array of the fully-qualified refs. For example: array('refs/tags/6.x-2.1');
  */
-function git_deploy_refs_find($git_dir, $hash, $types = null) {
+function git_deploy_refs_find($git_dir, $hash, $types = NULL) {
   $fetch_all_types = FALSE;
   $refs = array();
   $refs_dir = $git_dir . DIRECTORY_SEPARATOR . 'refs';
