@@ -16,6 +16,20 @@
  * tagging convention is incompatible with the CVS tagging convention.
  */
 
+function _git_deploy_load_glip() {
+  // Faster to see if Git is defined and return then to use include_once.
+  if (class_exists('Git')) {
+    return TRUE;
+  }
+  // Git class will only load once from glip.php even if included many times.
+  if (@include('glip/lib/glip.php')) {
+    return TRUE;
+  }
+  else {
+    watchdog('git_deploy', "Couldn't find Glip libraries, no git information can be retrieved.", array(), WATCHDOG_ERROR);
+  }
+}
+
 /**
  * Implement hook_system_info_alter() to provide metadata to drupal
  *   from git.
@@ -45,6 +59,11 @@ function git_deploy_system_info_alter(&$info, $file) {
     return;
   }
 
+  // We don't have our support libraries.
+  if (!_git_deploy_load_glip()) {
+    return;
+  }
+
   // Get the project name
   if (empty($info['project'])) {
     $info['project'] = git_deploy_get_project_name($git_dir);
@@ -68,6 +87,7 @@ function git_deploy_system_info_alter(&$info, $file) {
  */
 function _git_deploy_version_alter(&$version, $git_dir, $file) {
   static $available;
+
   $git_hash = git_deploy_hash_find($git_dir, 'HEAD');
 
   $head_contents = file_get_contents($git_dir . DIRECTORY_SEPARATOR . 'HEAD');
