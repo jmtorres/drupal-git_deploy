@@ -88,25 +88,42 @@ function git_deploy_system_info_alter(&$info, $file) {
 function _git_deploy_version_alter(&$version, $git_dir, $file) {
   static $available;
 
-  $git_hash = git_deploy_hash_find($git_dir, 'HEAD');
+  $repo = new Git($git_dir);
+  $githash = $repo->revParse();
+  $git_refs = $repo->getrefs();
 
   $head_contents = file_get_contents($git_dir . DIRECTORY_SEPARATOR . 'HEAD');
 
-  // Call git_deploy_refs_find with array set to heads if ref: found
   if (strpos($head_contents, ':') == 3) {
-      $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('heads'));
+      foreach ($git_refs as $branch => $ref) {
+      if ($githash === $ref) {
+        $branch_name = explode('/', $branch);
+        if ($branch_name[2] === "origin") {
+          $git_tag = $branch_name[3];
+          break;
+        }
+        elseif ($branch_name[1] === "heads") {
+          $git_tag = $branch_name[2];
+          break;
+        }
+        else {
+          break;
+        }
+      }
+    }
   }
   else {
-    // Call git_deploy_refs_find with array set to tags if ref: not found
-    $git_refs = git_deploy_refs_find($git_dir, $git_hash, array('tags'));
-  }
-
-  if (count($git_refs)) {
-    foreach ($git_refs as $git_ref) {
-      $ref_components = explode('/', $git_ref, 3);
-      if (count($ref_components) == 3) {
-        $git_tag = $ref_components[2];
-        break;
+    foreach ($git_refs as $tag => $ref) {
+      if ($githash === $ref) {
+        $tag_name = explode('/', $tag);
+        if ($tag_name[0] === "HEAD") {
+          continue;
+        }
+        else {
+          if ($tag_name[1] == "tags") {
+            $git_tag = $tag_name[2];
+          }
+        }
       }
     }
   }
@@ -162,108 +179,5 @@ function git_deploy_get_project_name($git_dir) {
   else {
     return '';
   }
-}
-
-/**
- * Turn a git ref into a git commit hash.
- *
- * @param $git_dir
- *   The path to the .git/ directory
- * @param $ref
- *   The ref to parse
- * @return
- *   NULL on error or the referenced hash.
- */
-function git_deploy_hash_find($git_dir, $ref) {
-  /* check if we have the hash */
-  if (strpos($ref, ':') === FALSE) {
-    if (strlen($ref) == 40) {
-      return $ref;
-    }
-
-    // Check for refs like HEAD
-    if (file_exists($git_dir . DIRECTORY_SEPARATOR . $ref)) {
-      return git_deploy_hash_find($git_dir, trim(file_get_contents($git_dir . DIRECTORY_SEPARATOR . $ref)));
-    }
-  }
-
-  list($type, $name) = explode(':', $ref, 2);
-  $name = trim($name);
-
-  switch ($type) {
-    case 'ref':
-      return git_deploy_hash_find($git_dir, trim(file_get_contents($git_dir . DIRECTORY_SEPARATOR . $name)));
-  }
-
-  return NULL;
-}
-
-/**
- * Map a GIT commit hash onto a ref.
- *
- * @param $git_dir
- *   The path to the .git/ diretory.
- * @param $hash
- *   The hash whose ref to find.
- * @param $types
- *   The types of ref to find. For example: array('tags'), array('heads'), or array('heads', 'tags')
- *
- * @return
- *   An array of the fully-qualified refs. For example: array('refs/tags/6.x-2.1');
- */
-function git_deploy_refs_find($git_dir, $hash, $types = NULL) {
-  $fetch_all_types = FALSE;
-  $refs = array();
-  $refs_dir = $git_dir . DIRECTORY_SEPARATOR . 'refs';
-  $hash = trim($hash);
-  if (empty($types)) {
-    $types = scandir($refs_dir);
-    $fetch_all_types = TRUE;
-  }
-  foreach ($types as $subdir) {
-    $type = $subdir;
-    $subdir = $refs_dir . DIRECTORY_SEPARATOR . $subdir;
-    if (!is_dir($subdir)) {
-      continue;
-    }
-
-    foreach (scandir($subdir) as $ref) {
-      if ($ref == '.' or $ref == '..') {
-        continue;
-      }
-      $ref_hash = trim(file_get_contents($subdir . DIRECTORY_SEPARATOR . $ref));
-      if ($ref_hash == $hash) {
-        // Reconstruct fully-qualified ref
-        $refs[] = 'refs/' . $type . '/' . $ref;
-      }
-    }
-  }
-  $git_packed_refs_file = $git_dir . DIRECTORY_SEPARATOR . 'packed-refs';
-  if (file_exists($git_packed_refs_file)) {
-    $packed_refs = explode("\n", file_get_contents($git_packed_refs_file));
-    foreach ($packed_refs as $packed_ref) {
-      $packed_ref = trim($packed_ref);
-      if (empty($packed_ref) || $packed_ref[0] == '#') {
-        continue;
-      }
-      list($packed_hash, $ref) = explode(' ', $packed_ref, 2);
-      if (trim($packed_hash) != $hash) {
-        continue;
-      }
-
-      // If $types was set by the caller, ensure that we only unpack the right
-      // types of refs.
-      if (!$fetch_all_types) {
-        $ref_components = explode('/', $ref);
-        if (count($ref_components > 1)
-          && !in_array($ref_components[1], $types)) {
-          continue;
-        }
-      }
-      $refs[] = $ref;
-    }
-  }
-
-  return $refs;
 }
 
