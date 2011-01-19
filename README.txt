@@ -1,3 +1,5 @@
+$Id$
+
 The git_deploy module requires the glip library. The version this is tested 
 against is at git://github.com/halstead/glip.git and all updates to glip are
 tracked there. glip is licensed under GPLv2.
