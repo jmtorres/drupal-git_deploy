@@ -16,19 +16,7 @@
  * tagging convention is incompatible with the CVS tagging convention.
  */
 
-function _git_deploy_load_glip() {
-  // Faster to see if Git is defined and return then to use include_once.
-  if (class_exists('Git')) {
-    return TRUE;
-  }
-  // Git class will only load once from glip.php even if included many times.
-  if (@include('glip/lib/glip.php')) {
-    return TRUE;
-  }
-  else {
-    watchdog('git_deploy', "Couldn't find Glip libraries, no git information can be retrieved.", array(), WATCHDOG_ERROR);
-  }
-}
+require_once DRUPAL_ROOT .'/sites/all/libraries/glip/lib/glip.php';
 
 /**
  * Implement hook_system_info_alter() to provide metadata to drupal
@@ -56,11 +44,6 @@ function git_deploy_system_info_alter(&$info, $file) {
 
   // Skip this item if it has no .git directory
   if (!file_exists($git_dir)) {
-    return;
-  }
-
-  // We don't have our support libraries.
-  if (!_git_deploy_load_glip()) {
     return;
   }
 
