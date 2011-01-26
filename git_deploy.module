@@ -16,8 +16,6 @@
  * tagging convention is incompatible with the CVS tagging convention.
  */
 
-require_once DRUPAL_ROOT .'/sites/all/libraries/glip/lib/glip.php';
-
 /**
  * Implement hook_system_info_alter() to provide metadata to drupal
  *   from git.
@@ -70,6 +68,7 @@ function git_deploy_system_info_alter(&$info, $file) {
  */
 function _git_deploy_version_alter(&$version, $git_dir, $file) {
   static $available;
+  require_once libraries_get_path('glip') . '/lib/glip.php';
 
   $repo = new Git($git_dir);
   $githash = $repo->revParse();

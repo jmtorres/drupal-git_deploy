@@ -2,3 +2,4 @@
 name = Git Deploy
 description = Helps sites that are deployed directly from a Git repositories.
 core = 6.x
+dependencies[] = libraries

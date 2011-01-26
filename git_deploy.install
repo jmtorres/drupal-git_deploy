@@ -3,7 +3,8 @@
 
 function git_deploy_requirements($phase) {
   $requirements = array();
-  $file_exists = file_exists(DRUPAL_ROOT .'/sites/all/libraries/glip/lib/glip.php');
+  $glip_path = libraries_get_path('glip');
+  $file_exists = file_exists($glip_path . '/lib/glip.php');
   if (!$file_exists) {
     $requirements['Glip'] = array(
       'title' => t('Glip Library'),
