@@ -54,7 +54,39 @@ function git_deploy_system_info_alter(&$info, $file) {
   if (empty($info['version'])) {
     $info['version'] = '';
   }
+
   _git_deploy_version_alter($info['version'], $git_dir, $file);
+
+  // Find the timestamp for the current commit.
+  $timestamp = git_deploy_get_project_timestamp($git_dir);
+  if ($info['project'] == 'versioncontrol_git') {
+    dpm(date('l jS \of F Y h:i:s A', $timestamp));
+  }
+  // Only fill this in if the .info file does not define a 'datestamp'.
+  if (empty($info['datestamp'])) {
+    $info['datestamp'] = $timestamp;
+  }
+
+  // However, the '_info_file_ctime' should always get the latest value.
+  if (empty($info['_info_file_ctime'])) {
+    $info['_info_file_ctime'] = $timestamp;
+  }
+  else {
+    $info['_info_file_ctime'] = max($info['_info_file_ctime'], $timestamp);
+  }
+}
+
+/**
+ * Return the timestamp for the project's current commit.
+ *
+ * @return
+ *   Timestamp.
+ */
+function git_deploy_get_project_timestamp($git_dir) {
+  $repo = new Git($git_dir);
+  $git_object = $repo->getObject($repo->revParse());
+
+  return $git_object->committer->time;
 }
 
 /**
