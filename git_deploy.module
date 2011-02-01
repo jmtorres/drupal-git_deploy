@@ -59,9 +59,7 @@ function git_deploy_system_info_alter(&$info, $file) {
 
   // Find the timestamp for the current commit.
   $timestamp = git_deploy_get_project_timestamp($git_dir);
-  if ($info['project'] == 'versioncontrol_git') {
-    dpm(date('l jS \of F Y h:i:s A', $timestamp));
-  }
+
   // Only fill this in if the .info file does not define a 'datestamp'.
   if (empty($info['datestamp'])) {
     $info['datestamp'] = $timestamp;
