@@ -1,4 +1,3 @@
-$Id$
 
 The git_deploy module requires the glip library. git_deploy is tested 
 against version 1.0 available at https://github.com/halstead/glip/tree/1.0

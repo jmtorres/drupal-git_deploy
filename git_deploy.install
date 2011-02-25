@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 function git_deploy_requirements($phase) {
   $requirements = array();
