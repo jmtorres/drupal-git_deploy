@@ -2,6 +2,7 @@
 
 function git_deploy_requirements($phase) {
   $requirements = array();
+  drupal_load('module', 'libraries');
   $glip_path = libraries_get_path('glip');
   $file_exists = file_exists($glip_path . '/lib/glip.php');
   if (!$file_exists) {
