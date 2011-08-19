@@ -141,6 +141,9 @@ function _git_deploy_version_alter(&$version, $git_dir, $file) {
 
   if (!empty($git_tag)) {
     $version = $git_tag;
+    if (preg_match('/-[1-9][0-9]*\.x/', $version, $match)) {
+      $version .= '-dev';
+    }
   }
 
   if (module_exists('update') && $version == 'master') {
