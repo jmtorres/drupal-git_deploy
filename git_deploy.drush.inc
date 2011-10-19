@@ -50,7 +50,7 @@ function drush_git_deploy_download() {
   if (is_dir($path)) {
     drush_log('Glip already present. No download required.', 'ok');
   }
-  elseif (drush_shell_cd_and_exec(dirname($path), 'git clone https://github.com/halstead/glip.git && cd glip && git checkout 1.0')) {
+  elseif (drush_shell_cd_and_exec(dirname($path), 'git clone https://github.com/halstead/glip.git && cd glip && git checkout 1.1')) {
     drush_log(dt('Glip has been cloned via git to @path.', array('@path' => $path)), 'success');
   }
   else {
