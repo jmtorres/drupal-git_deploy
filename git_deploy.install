@@ -2,15 +2,11 @@
 
 function git_deploy_requirements($phase) {
   $requirements = array();
-  drupal_load('module', 'libraries');
-  $glip_path = libraries_get_path('glip');
-  $file_exists = file_exists($glip_path . '/lib/glip.php');
-  if (!$file_exists) {
-    $requirements['Glip'] = array(
-      'title' => t('Glip Library'),
-      'value' => t('<em>Missing</em>.  See the instructions in README.txt'),
-      'description' => t('The Glip library must be present at sites/all/libraries/glip/lib.'),
-      'severity' => REQUIREMENT_ERROR,
+  if ($phase == 'runtime') {
+    $requirements['git'] = array(
+      'title' => t('git binary'),
+      'value' => t('The git binary is present and executable'),
+      'severity' => function_exists('exec') && exec('git') ? REQUIREMENT_OK : REQUIREMENT_ERROR,
     );
   }
   return $requirements;
