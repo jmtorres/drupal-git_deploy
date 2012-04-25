@@ -2,10 +2,11 @@
 
 function git_deploy_requirements($phase) {
   $requirements = array();
-  drupal_load('module', 'libraries');
-  $glip_path = libraries_get_path('glip');
-  $file_exists = file_exists($glip_path . '/lib/glip.php');
-  if (!$file_exists) {
+  $glip_path = FALSE;
+  if (function_exists('libraries_get_path')) {
+    $glip_path = libraries_get_path('glip');
+  }
+  if (!$glip_path || !($file_exists = file_exists($glip_path . '/lib/glip.php'))) {
     $requirements['Glip'] = array(
       'title' => t('Glip Library'),
       'value' => t('<em>Missing</em>.  See the instructions in README.txt'),
